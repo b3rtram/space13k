@@ -1,0 +1,96 @@
+<html>
+<head>
+
+</head>
+<body>
+    <canvas id="canvas"></canvas>
+</body>
+<script src="star.js"></script>
+<script src="planet.js"></script>
+<script src="ship.js"></script>
+<script>
+    (function() {
+    
+        canvas = document.getElementById("canvas");
+        canvas.width = document.body.clientWidth; //document.width is obsolete
+        canvas.height = document.body.clientHeight; //document.height is obsolete
+        let world = [];
+        let s = new ship(30, 30, 1);
+
+        document.onkeypress = key;
+
+        function key(e) {
+            if(e.key === 'd') {
+                s.rotation += 0.01;
+            }
+            if(e.key === 'a') {
+                s.rotation -= 0.01;
+            }
+
+            if(e.key === 'w') {
+                this.speedUp();
+            }
+
+        }
+
+        init(world)
+        draw(world);
+
+        function rand(min,max){
+            return Math.random()*(max-min+1)+min;
+        }
+
+        function randfloat(min,max){
+            while(1) {
+                v = Math.random();
+                if(v>min && v<max)
+                    return v
+            }
+        }
+
+        function init(w) {
+
+            for(let i=0; i<1000; i++) {   
+                addStar(w, canvas.width);
+            }
+
+            w.push(new planet(250, 250, 1));
+            w.push(s);
+        }
+
+        function addStar(world, width) {
+            z = randfloat(0.1, 0.2);   
+            y = rand(0.0, canvas.height);
+            x = rand(0.0, width);
+            world.push(new star(x, y, z));
+        }
+
+        function draw(w) {
+            let ctx = canvas.getContext('2d');
+            ctx.clearRect(0, 0, canvas.width, canvas.height); // clear canvas
+
+            ctx.fillStyle = "black";
+            ctx.fillRect(0, 0, canvas.width, canvas.height);
+
+            for(let i=0; i<w.length; i++) {
+                let obj = w[i];
+
+                obj.update();
+                obj.draw(ctx);
+
+                //
+                if(obj.x > canvas.width && typeof star) {
+                    w.splice(i,1);
+                    addStar(w, -10);
+                }
+            }
+
+            window.requestAnimationFrame(()=>{
+                draw(w);
+            });
+
+        }
+    })();
+
+</script>
+</html>

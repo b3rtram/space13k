@@ -25,5 +25,6 @@ star.prototype.draw = function(ctx) {
 }
 
 star.prototype.update = function() {
-    this.x += 1 * this.z;
+    this.x += 0.5 * this.z;
+    return true;
 }

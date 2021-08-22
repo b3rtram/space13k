@@ -8,6 +8,7 @@
 <script src="star.js"></script>
 <script src="planet.js"></script>
 <script src="ship.js"></script>
+<script src="wormhole.js"></script>
 <script>
     (function() {
     
@@ -21,14 +22,14 @@
 
         function key(e) {
             if(e.key === 'd') {
-                s.rotation += 0.01;
+                s.rotation += 0.05;
             }
             if(e.key === 'a') {
-                s.rotation -= 0.01;
+                s.rotation -= 0.05;
             }
 
             if(e.key === 'w') {
-                this.speedUp();
+                s.speedUp();
             }
 
         }
@@ -54,7 +55,17 @@
                 addStar(w, canvas.width);
             }
 
-            w.push(new planet(250, 250, 1));
+            p = new planet(400, 400, 50);
+            p2 = new planet(800, 400, 100);
+            worm = new wormhole(600, 600, 50);
+
+            w.push(worm);
+            w.push(p);
+            s.addGravi(worm);
+            s.addGravi(p)
+
+            w.push(p2);
+            s.addGravi(p2);
             w.push(s);
         }
 
@@ -75,7 +86,13 @@
             for(let i=0; i<w.length; i++) {
                 let obj = w[i];
 
-                obj.update();
+                coll = obj.update();
+                
+                if(typeof coll === 'planet') {
+                    console.log
+                }
+
+
                 obj.draw(ctx);
 
                 //

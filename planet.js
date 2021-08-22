@@ -1,12 +1,11 @@
 
 
-function planet(x, y, z) {
+function planet(x, y, r) {
 
-    this.x = x,
-    this.y = y,
-    this.z = z,
-
-    this.radius = 100;
+    this.x = x;
+    this.y = y;
+    this.z = 1;
+    this.r = r;
 }
 
 planet.prototype.draw = function(ctx) {
@@ -15,10 +14,11 @@ planet.prototype.draw = function(ctx) {
     ctx.scale(this.z, this.z)
     ctx.beginPath();
     ctx.strokeStyle = "white";
-    ctx.arc(this.x, this.y, this.radius, 0, 2*3.14);
+    ctx.arc(0,0, this.r, 0, 2*3.14);
     ctx.stroke();
     ctx.restore();
 }
 
 planet.prototype.update = function() {
+    return true;
 }

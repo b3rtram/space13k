@@ -10,7 +10,7 @@ function star(x, y, z) {
 }
 
 star.prototype.draw = function(ctx) {
-    ctx.save()
+
     ctx.translate(this.x, this.y)
     ctx.scale(this.z, this.z)
     ctx.beginPath();
@@ -21,7 +21,6 @@ star.prototype.draw = function(ctx) {
     ctx.arc(this.x, this.y, this.radius, 0, 2*3.14);
     ctx.fill();
 
-    ctx.restore();
 }
 
 star.prototype.update = function() {

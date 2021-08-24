@@ -15,76 +15,102 @@ function ship(x, y, f) {
     }
 
     this.gravi = [];
-
     this.fuel = f;
+    this.burst = false;
+    this.rotateBurst = false;
 }
 
 ship.prototype.draw = function(ctx) {
     ctx.translate(this.x, this.y)
     ctx.scale(this.z, this.z)
     ctx.rotate(this.rotation)
-    ctx.beginPath();    
-    ctx.moveTo(0,0);
-    ctx.lineTo(7,0);
-    ctx.lineTo(7,1);
-    ctx.lineTo(8,1);
-    ctx.lineTo(8,2);
-    ctx.lineTo(9,2);
-    ctx.lineTo(9,3);
-    ctx.lineTo(22,3);
-    ctx.lineTo(22,4);
-    ctx.lineTo(27,4);
-    ctx.lineTo(27,5);
-    ctx.lineTo(28,5);
-    ctx.lineTo(28,6);
-    ctx.lineTo(29,6);
-    ctx.lineTo(29,7);
-    ctx.lineTo(30,7);
-    ctx.lineTo(30,8);
-    ctx.lineTo(29,8);
-    ctx.lineTo(29,9);
-    ctx.lineTo(28,9);
-    ctx.lineTo(28,10);
-    ctx.lineTo(27,10);
-    ctx.lineTo(27,11);
-    ctx.lineTo(22,11);
-    ctx.lineTo(22,12);
-    ctx.lineTo(9,12);
-    ctx.lineTo(9,13);
-    ctx.lineTo(8,13);
-    ctx.lineTo(8,14);
-    ctx.lineTo(7,14);
-    ctx.lineTo(7,15);
-    ctx.lineTo(0,15);
-    ctx.lineTo(0,14);
-    ctx.lineTo(1,14);
-    ctx.lineTo(1,13);
-    ctx.lineTo(2,13);
-    ctx.lineTo(2,12);
-    ctx.lineTo(3,12);
-    ctx.lineTo(3,11);
-    ctx.lineTo(1,11);
-    ctx.lineTo(1,10);
-    ctx.lineTo(0,10);
-    ctx.lineTo(0,9);
-    ctx.lineTo(-2,9);
-    ctx.lineTo(-2,8);
-    ctx.lineTo(-3,8);
-    ctx.lineTo(-3,7);
-    ctx.lineTo(-2,7);
-    ctx.lineTo(-2,6);
-    ctx.lineTo(0,6);
-    ctx.lineTo(0,5);
-    ctx.lineTo(1,5);
-    ctx.lineTo(1,4);
-    ctx.lineTo(3,4);
-    ctx.lineTo(3,3);
-    ctx.lineTo(2,3);
-    ctx.lineTo(2,2);
-    ctx.lineTo(1,2);
-    ctx.lineTo(1,1);
-    ctx.lineTo(0,1);
-    ctx.lineTo(0,0);
+    ctx.beginPath();
+    let sy = -7; 
+    let sx = -10;
+
+    ctx.moveTo(0+sx,0+sy);
+    ctx.lineTo(7+sx,0+sy);
+    ctx.lineTo(7+sx,1+sy);
+    ctx.lineTo(8+sx,1+sy);
+    ctx.lineTo(8+sx,2+sy);
+    ctx.lineTo(9+sx,2+sy);
+    ctx.lineTo(9+sx,3+sy);
+    ctx.lineTo(22+sx,3+sy);
+    ctx.lineTo(22+sx,4+sy);
+    ctx.lineTo(27+sx,4+sy);
+    ctx.lineTo(27+sx,5+sy);
+    ctx.lineTo(28+sx,5+sy);
+    ctx.lineTo(28+sx,6+sy);
+    ctx.lineTo(29+sx,6+sy);
+    ctx.lineTo(29+sx,7+sy);
+    ctx.lineTo(30+sx,7+sy);
+    ctx.lineTo(30+sx,8+sy);
+    ctx.lineTo(29+sx,8+sy);
+    ctx.lineTo(29+sx,9+sy);
+    ctx.lineTo(28+sx,9+sy);
+    ctx.lineTo(28+sx,10+sy);
+    ctx.lineTo(27+sx,10+sy);
+    ctx.lineTo(27+sx,11+sy);
+    ctx.lineTo(22+sx,11+sy);
+    ctx.lineTo(22+sx,12+sy);
+    ctx.lineTo(9+sx,12+sy);
+    ctx.lineTo(9+sx,13+sy);
+    ctx.lineTo(8+sx,13+sy);
+    ctx.lineTo(8+sx,14+sy);
+    ctx.lineTo(7+sx,14+sy);
+    ctx.lineTo(7+sx,15+sy);
+    ctx.lineTo(0+sx,15+sy);
+    ctx.lineTo(0+sx,14+sy);
+    ctx.lineTo(1+sx,14+sy);
+    ctx.lineTo(1+sx,13+sy);
+    ctx.lineTo(2+sx,13+sy);
+    ctx.lineTo(2+sx,12+sy);
+    ctx.lineTo(3+sx,12+sy);
+    ctx.lineTo(3+sx,11+sy);
+    ctx.lineTo(1+sx,11+sy);
+    ctx.lineTo(1+sx,10+sy);
+    ctx.lineTo(0+sx,10+sy);
+    ctx.lineTo(0+sx,9+sy);
+    ctx.lineTo(-2+sx,9+sy);
+    ctx.lineTo(-2+sx,8+sy);
+    ctx.lineTo(-3+sx,8+sy);
+    ctx.lineTo(-3+sx,7+sy);
+    ctx.lineTo(-2+sx,7+sy);
+    ctx.lineTo(-2+sx,6+sy);
+    ctx.lineTo(0+sx,6+sy);
+    ctx.lineTo(0+sx,5+sy);
+    ctx.lineTo(1+sx,5+sy);
+    ctx.lineTo(1+sx,4+sy);
+    ctx.lineTo(3+sx,4+sy);
+    ctx.lineTo(3+sx,3+sy);
+    ctx.lineTo(2+sx,3+sy);
+    ctx.lineTo(2+sx,2+sy);
+    ctx.lineTo(1+sx,2+sy);
+    ctx.lineTo(1+sx,1+sy);
+    ctx.lineTo(0+sx,1+sy);
+    ctx.lineTo(0+sx,0+sy);
+
+    if(this.burst) {
+      ctx.moveTo(-5+sx, 7+sy);
+      ctx.lineTo(-9+sx, 7+sy);
+      ctx.lineTo(-9+sx, 8+sy);
+      ctx.lineTo(-5+sx, 8+sy);  
+    }
+
+    if(this.rotateBurst == 1) {
+        ctx.moveTo(22+sx, 0+sy);
+        ctx.lineTo(22+sx, -5+sy);
+        ctx.lineTo(21+sx, -5+sy);
+        ctx.lineTo(21+sx, 0+sy);
+    }
+
+    if(this.rotateBurst == -1) {
+        ctx.moveTo(22+sx, 15+sy);
+        ctx.lineTo(22+sx, 20+sy);
+        ctx.lineTo(21+sx, 20+sy);
+        ctx.lineTo(21+sx, 15+sy);
+    }
+
     ctx.closePath();
     ctx.fillStyle="#c2c2c2";
     ctx.fill();
@@ -94,10 +120,20 @@ ship.prototype.addGravi = function(g) {
     this.gravi.push(g);
 }
 
+ship.prototype.speedEnd = function() {
+    this.burst = false;
+}
+
+ship.prototype.rotateEnd = function() {
+    this.rotateBurst = 0;
+}
+
 ship.prototype.speedUp = function() {
 
     if(this.fuel <= 0.0)
         return;
+
+    this.burst = true;
 
     x = 0.1;
     y = 0.1;
@@ -111,6 +147,7 @@ ship.prototype.speedUp = function() {
 ship.prototype.rotate = function(factor) {
     this.rotation += 0.1 * factor;
     this.fuel -= 0.1;
+    this.rotateBurst = factor;
 }
 
 ship.prototype.update = function() {
@@ -132,6 +169,7 @@ ship.prototype.update = function() {
             return g;
         }
         f = g.m / (r*r) * 150.0;
+        console.log(f);
         x += Math.cos(dist)*f;
         y += Math.sin(dist)*f;
     }

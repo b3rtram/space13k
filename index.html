@@ -22,6 +22,7 @@
         let s = new ship(50, 100, 10);
 
         document.onkeypress = key;
+        document.onkeyup = keyUp;
 
         function key(e) {
             if (e.key === 'd') {
@@ -34,7 +35,15 @@
             if (e.key === 'w') {
                 s.speedUp();
             }
+        }
 
+        function keyUp(e) {
+            if (e.key === 'w') {
+                s.speedEnd();
+            }
+            if (e.key === 'a' || e.key === 'd') {
+                s.rotateEnd()
+            }
         }
 
         init(world)
@@ -66,7 +75,7 @@
             w.push(p2);
             s.addGravi(p2);
 
-            worm = new wormhole(600, 600, 50);
+            worm = new wormhole(600, 600, 50, 200);
             w.push(worm);
             s.addGravi(worm);
 

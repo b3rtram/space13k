@@ -1,10 +1,11 @@
 
 
-function wormhole(x, y, r) {
+function wormhole(x, y, r, m) {
 
-    this.x = x,
-    this.y = y,
-    this.z = 1,
+    this.x = x;
+    this.y = y;
+    this.z = 1;
+    this.m = m;
 
     this.r = r;
 }

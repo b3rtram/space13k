@@ -5,6 +5,7 @@ function ship(x, y, f) {
     this.z = 1;
 
     this.rotation = 0.0;
+    this.rotSpeed = 0.0;
 
     this.radius = 100;
 
@@ -18,6 +19,8 @@ function ship(x, y, f) {
     this.fuel = f;
     this.burst = false;
     this.rotateBurst = false;
+
+    this.type ="ship";
 }
 
 ship.prototype.draw = function(ctx) {
@@ -145,7 +148,10 @@ ship.prototype.speedUp = function() {
 }
 
 ship.prototype.rotate = function(factor) {
-    this.rotation += 0.1 * factor;
+    if(this.fuel <= 0.0)
+        return;
+
+    this.rotSpeed += 0.01 * factor;
     this.fuel -= 0.1;
     this.rotateBurst = factor;
 }
@@ -158,24 +164,28 @@ ship.prototype.update = function() {
     x = this.speed.x;
     y = this.speed.y;
 
+    this.rotation += this.rotSpeed;
+
     for(g of this.gravi) {
         bufX = g.x - this.x;
         bufY = g.y - this.y;
         dist = Math.atan2(bufY,bufX);
 
         r = Math.sqrt(bufX * bufX + bufY * bufY);
-        
+        console.log(r-g.r);
         if(r - g.r< 5.0) {
             return g;
         }
         f = g.m / (r*r) * 150.0;
-        console.log(f);
+
         x += Math.cos(dist)*f;
         y += Math.sin(dist)*f;
     }
 
     this.x += x;
     this.y += y;
-
+    this.speed.y=y;
+    this.speed.x=x;
+    
     return null;
 }

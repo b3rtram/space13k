@@ -9,7 +9,7 @@ function asteroid(x, y, rf, m, z, sx, sy) {
     this.sx = sx;
     this.sy = sy;
 
-    this.type = "meteroit";
+    this.type = "asteroid";
 
     this.img = new Image();
     this.img.src = 'assets/asteroid.png';

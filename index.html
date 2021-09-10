@@ -9,6 +9,12 @@
     <script src="toolbar.js"></script>
     <script src="menu.js"></script>
     <script src="asteroid.js"></script>
+    <script src="end.js"></script>
+    <script src="keylayout.js"></script>
+    <script src="progress.js"></script>
+    <style>
+        html, body {margin: 0; overflow: hidden; height: 100%}
+    </style>
 </head>
 
 <body>
@@ -32,8 +38,8 @@
         let s = null;
 
 
-        let world = initmenu();
-        //let world = init(lvls[0]);
+        //let world = initend();
+        let world = init(lvls[4]);
         draw(world);
 
         function rand(min, max) {
@@ -67,6 +73,16 @@
             return w;
         }
 
+        function initend() {
+            let w = [];
+            w.push(new end(0, 0));
+
+            for (let i = 0; i < 1000; i++) {
+                addStar(w, canvas.width);
+            }
+            return w;
+        }
+
         function init(lvl) {
 
             let w = [];
@@ -82,7 +98,6 @@
                 if (e.key === 'w') {
                     kd_w = true;
                 }
-
             };
 
             document.onkeyup = function (e) {
@@ -127,8 +142,15 @@
             s.addGravi(worm);
 
             w.push(s);
+
             t = new tb(50, 50, s);
             w.push(t)
+
+            let k = new key(canvas.width - 200, canvas.height - 200);
+            w.push(k);
+
+            p = new progress(0, 0, lvls);
+            w.push(p);
 
             return w;
 
@@ -143,7 +165,6 @@
 
 
         function draw(w) {
-
 
             let ctx = canvas.getContext('2d');
             ctx.save();
@@ -172,6 +193,9 @@
                 }
                 else if (coll != null && coll.type === 'wormhole') {
                     collWh = true;
+                }
+                else if (coll != null && coll.type === 'asteroid') {
+                    collPlanet = true;
                 }
                 else if (obj.type === 'ship') {
                     if (obj.x < 0 || obj.x > canvas.width || obj.y < 0 || obj.y > canvas.height) {

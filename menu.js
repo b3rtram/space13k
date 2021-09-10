@@ -6,7 +6,6 @@ function menu(x, y) {
 
 menu.prototype.draw = function(ctx) {
 
-
     ctx.fillStyle = ctx.fillStyle = "rgba(50, 50, 50, 0.8)";
     ctx.fillRect(50, 50, ctx.canvas.width-100, ctx.canvas.height-100);
     ctx.save();

@@ -85,6 +85,7 @@
 
         function init(lvl) {
 
+
             let w = [];
             s = new ship(lvl.s.x, lvl.s.y, lvl.s.f);
 
@@ -222,8 +223,14 @@
             }
             else if (collWh) {
                 collWh = false;
+
                 currentLvl += 1;
-                w = init(lvls[currentLvl]);
+                if(currentLvl == lvls.length) {
+                    w = initend();
+                } else {
+                    w = init(lvls[currentLvl]);
+                }
+
             }
 
             window.requestAnimationFrame(() => {

@@ -8,6 +8,7 @@
     <script src="wormhole.js"></script>
     <script src="toolbar.js"></script>
     <script src="menu.js"></script>
+    <script src="asteroid.js"></script>
 </head>
 
 <body>
@@ -30,11 +31,9 @@
         let kd_d = false;
         let s = null;
 
-        let lastDraw = 0;
-
 
         //let world = initmenu();
-        let world = init(lvls[3]);
+        let world = init(lvls[0]);
         draw(world);
 
         function rand(min, max) {
@@ -112,10 +111,16 @@
             }
 
             for (p of lvl.ps) {
-                p = new planet(p.x, p.y, p.r, p.m);
+                p = new planet(p.x, p.y, p.r, p.m, p.t);
                 w.push(p);
                 s.addGravi(p)
             }
+
+            for (a of lvl.ast) {
+                a = new asteroid(a.x, a.y, a.r, a.m, a.z, a.sx, a.sy);
+                w.push(a);
+                s.addGravi(a);
+            };
 
             worm = new wormhole(lvl.wh.x, lvl.wh.y, lvl.wh.r, lvl.wh.m);
             w.push(worm);
@@ -197,13 +202,10 @@
                 w = init(lvls[currentLvl]);
             }
 
-            console.log(performance.now() - lastDraw);
-            if (performance.now() - lastDraw > 1) {
                 window.requestAnimationFrame(() => {
                     lastDraw = performance.now();
                     draw(w);
                 });
-            }
 
         }
     })();

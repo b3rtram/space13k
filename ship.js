@@ -115,7 +115,7 @@ ship.prototype.draw = function(ctx) {
     }
 
     ctx.closePath();
-    ctx.fillStyle="#c2c2c2";
+    ctx.fillStyle="#ffaa00";
     ctx.fill();
 }
 

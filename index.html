@@ -38,8 +38,8 @@
         let s = null;
 
 
-        //let world = initend();
-        let world = init(lvls[4]);
+        let world = initmenu();
+        //let world = init(lvls[4]);
         draw(world);
 
         function rand(min, max) {
@@ -146,11 +146,11 @@
             t = new tb(50, 50, s);
             w.push(t)
 
-            let k = new key(canvas.width - 200, canvas.height - 200);
+            let k = new key(canvas.width - 100, canvas.height - 100);
             w.push(k);
 
-            p = new progress(0, 0, lvls);
-            w.push(p);
+            let pr = new progress(50, canvas.height - 30, lvls, currentLvl);
+            w.push(pr);
 
             return w;
 
@@ -226,10 +226,10 @@
                 w = init(lvls[currentLvl]);
             }
 
-                window.requestAnimationFrame(() => {
-                    lastDraw = performance.now();
-                    draw(w);
-                });
+            window.requestAnimationFrame(() => {
+                lastDraw = performance.now();
+                draw(w);
+            });
 
         }
     })();

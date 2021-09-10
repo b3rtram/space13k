@@ -1,21 +1,50 @@
-function progress(x, y, lvls) {
+function progress(x, y, lvls, l) {
     this.x = x;
     this.y = y;
     this.lvls = lvls;
+    this.l = l;
     this.type="progress";
 }
 
 progress.prototype.draw = function(ctx) {
-    
-    ctx.translate(this.x, this.y);
 
+    let k = 0;
     for(let i = 0; i<this.lvls.length; i++) {
-        ctx.translate(40, 0);
-        ctx.fillStyle = "white";
+        ctx.save();
+        ctx.translate(this.x + 150 * i, this.y);
+        ctx.beginPath();
         ctx.moveTo(0,0);
-        ctx.lineTo(50,50);
-        ctx.fillRect();
+        ctx.lineTo(100, 0);
+        ctx.strokeStyle = "white";
+        ctx.stroke();
+        ctx.restore();
+
+        ctx.save();
+        ctx.translate(this.x + 150 * (i+1), this.y); 
+        ctx.beginPath();
+        ctx.arc(-25, 0, 8.0, 0, 2 * Math.PI, false);
+        
+        if(i > this.l) {
+            ctx.strokeStyle = "white";
+            ctx.stroke();
+        } else {
+            ctx.fillStyle = "white";
+            ctx.fill();
+        }
+
+        ctx.restore();
+        k = i;
     }
+
+    ctx.save();
+    ctx.translate(this.x + 150 * (k+1), this.y);
+    ctx.beginPath();
+    ctx.moveTo(0,0);
+    ctx.lineTo(100, 0);
+    ctx.strokeStyle = "white";
+    ctx.stroke();
+    ctx.restore();
+
 
     // ctx.save();
     // ctx.restore();

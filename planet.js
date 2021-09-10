@@ -7,6 +7,8 @@ function planet(x, y, r, m) {
     this.z = 1;
     this.r = r;
     this.m = m;
+
+    this.type = "planet";
 }
 
 planet.prototype.draw = function(ctx) {
@@ -23,5 +25,5 @@ planet.prototype.draw = function(ctx) {
 }
 
 planet.prototype.update = function() {
-    return true;
+    return null;
 }

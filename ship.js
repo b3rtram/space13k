@@ -133,17 +133,15 @@ ship.prototype.rotateEnd = function() {
 
 ship.prototype.speedUp = function() {
 
-    if(this.fuel <= 0.0)
+    if(this.fuel <= 0.0) {
+        this.burst = false;
         return;
+    }
 
     this.burst = true;
-
-    x = 0.1;
-    y = 0.1;
-    this.speed.x += x * Math.cos(this.rotation);
-    this.speed.y += y * Math.sin(this.rotation);
-
-    this.fuel -= 0.1;
+    this.speed.x += 0.02 * Math.cos(this.rotation);
+    this.speed.y += 0.02 * Math.sin(this.rotation);
+    this.fuel -= 0.04;
 
 }
 
@@ -151,8 +149,8 @@ ship.prototype.rotate = function(factor) {
     if(this.fuel <= 0.0)
         return;
 
-    this.rotSpeed += 0.01 * factor;
-    this.fuel -= 0.1;
+    this.rotSpeed += 0.001 * factor;
+    this.fuel -= 0.03;
     this.rotateBurst = factor;
 }
 
@@ -172,7 +170,6 @@ ship.prototype.update = function() {
         dist = Math.atan2(bufY,bufX);
 
         r = Math.sqrt(bufX * bufX + bufY * bufY);
-        console.log(r-g.r);
         if(r - g.r< 5.0) {
             return g;
         }

@@ -8,6 +8,7 @@ function wormhole(x, y, r, m) {
     this.m = m;
 
     this.r = r;
+    this.type = "wormhole";
 }
 
 wormhole.prototype.draw = function(ctx) {
@@ -23,5 +24,9 @@ wormhole.prototype.draw = function(ctx) {
 }
 
 wormhole.prototype.update = function() {
-    return true;
+    return null;
+}
+
+wormhole.prototype.type = function() {
+    return "wormhole";
 }

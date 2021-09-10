@@ -7,6 +7,8 @@ function star(x, y, z) {
     this.z = z,
 
     this.radius = 10;
+
+    this.type = "star";
 }
 
 star.prototype.draw = function(ctx) {
@@ -25,5 +27,5 @@ star.prototype.draw = function(ctx) {
 
 star.prototype.update = function() {
     this.x += 0.5 * this.z;
-    return true;
+    return null;
 }

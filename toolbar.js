@@ -4,6 +4,8 @@ function tb(x, y, s) {
     this.y = y;
     this.z = 1;
     this.s = s;
+
+    this.type = "toolbar";
 }
 
 tb.prototype.draw = function(ctx) { 
@@ -20,5 +22,9 @@ tb.prototype.draw = function(ctx) {
 }
 
 tb.prototype.update = function() {
-    return true;
+    return null;
+}
+
+tb.prototype.type = function() {
+    return "toolbar";
 }

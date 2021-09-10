@@ -1,52 +1,40 @@
 <html>
 
 <head>
-
+    <script src="lvl.js"></script>
+    <script src="star.js"></script>
+    <script src="planet.js"></script>
+    <script src="ship.js"></script>
+    <script src="wormhole.js"></script>
+    <script src="toolbar.js"></script>
+    <script src="menu.js"></script>
 </head>
 
 <body>
     <canvas id="canvas"></canvas>
 </body>
-<script src="star.js"></script>
-<script src="planet.js"></script>
-<script src="ship.js"></script>
-<script src="wormhole.js"></script>
-<script src="toolbar.js"></script>
+
+
 <script>
     (function () {
 
         canvas = document.getElementById("canvas");
         canvas.width = document.body.clientWidth; //document.width is obsolete
         canvas.height = document.body.clientHeight; //document.height is obsolete
-        let world = [];
-        let s = new ship(50, 100, 10);
+        let collPlanet = false;
+        let collWh = false;
+        let collFrame = false;
+        let currentLvl = 0;
+        let kd_w = false;
+        let kd_a = false;
+        let kd_d = false;
+        let s = null;
 
-        document.onkeypress = key;
-        document.onkeyup = keyUp;
+        let lastDraw = 0;
 
-        function key(e) {
-            if (e.key === 'd') {
-                s.rotate(1);
-            }
-            if (e.key === 'a') {
-                s.rotate(-1);
-            }
 
-            if (e.key === 'w') {
-                s.speedUp();
-            }
-        }
-
-        function keyUp(e) {
-            if (e.key === 'w') {
-                s.speedEnd();
-            }
-            if (e.key === 'a' || e.key === 'd') {
-                s.rotateEnd()
-            }
-        }
-
-        init(world)
+        //let world = initmenu();
+        let world = init(lvls[3]);
         draw(world);
 
         function rand(min, max) {
@@ -61,29 +49,83 @@
             }
         }
 
-        function init(w) {
+        function initmenu() {
+            let w = [];
+            w.push(new menu(0, 0));
+
+            document.onkeyup = function (e) {
+                if (e.key === 'Escape') {
+
+                    world = init(lvls[currentLvl]);
+                    draw(world);
+                }
+
+            };
+
+            for (let i = 0; i < 1000; i++) {
+                addStar(w, canvas.width);
+            }
+            return w;
+        }
+
+        function init(lvl) {
+
+            let w = [];
+            s = new ship(lvl.s.x, lvl.s.y, lvl.s.f);
+
+            document.onkeydown = function (e) {
+                if (e.key === 'd') {
+                    kd_d = true;
+                }
+                if (e.key === 'a') {
+                    kd_a = true;
+                }
+                if (e.key === 'w') {
+                    kd_w = true;
+                }
+
+            };
+
+            document.onkeyup = function (e) {
+                if (e.key === 'w') {
+                    kd_w = false;
+                    s.speedEnd();
+                }
+
+                if (e.key === 'x') {
+                    collFrame = true; //no collision here only for reset
+                }
+
+                if (e.key === 'a') {
+                    kd_a = false;
+                    s.rotateEnd();
+                }
+
+                if (e.key === 'd') {
+                    kd_d = false;
+                    s.rotateEnd();
+                }
+            }
 
             for (let i = 0; i < 1000; i++) {
                 addStar(w, canvas.width);
             }
 
-            p = new planet(400, 400, 50, 150);
-            w.push(p);
-            s.addGravi(p)
+            for (p of lvl.ps) {
+                p = new planet(p.x, p.y, p.r, p.m);
+                w.push(p);
+                s.addGravi(p)
+            }
 
-            p2 = new planet(800, 400, 100, 200);
-            w.push(p2);
-            s.addGravi(p2);
-
-            worm = new wormhole(600, 600, 50, 200);
+            worm = new wormhole(lvl.wh.x, lvl.wh.y, lvl.wh.r, lvl.wh.m);
             w.push(worm);
             s.addGravi(worm);
 
-
             w.push(s);
-
             t = new tb(50, 50, s);
             w.push(t)
+
+            return w;
 
         }
 
@@ -94,7 +136,10 @@
             world.push(new star(x, y, z));
         }
 
+
         function draw(w) {
+
+
             let ctx = canvas.getContext('2d');
             ctx.save();
             ctx.clearRect(0, 0, canvas.width, canvas.height); // clear canvas
@@ -102,13 +147,31 @@
             ctx.fillRect(0, 0, canvas.width, canvas.height);
             ctx.restore();
 
+            if (kd_w) {
+                s.speedUp();
+            }
+            if (kd_a) {
+                s.rotate(-1);
+            }
+            if (kd_d) {
+                s.rotate(1);
+            }
+
             for (let i = 0; i < w.length; i++) {
                 let obj = w[i];
 
                 coll = obj.update();
 
-                if (typeof coll === 'planet') {
-                    
+                if (coll != null && coll.type === 'planet') {
+                    collPlanet = true;
+                }
+                else if (coll != null && coll.type === 'wormhole') {
+                    collWh = true;
+                }
+                else if (obj.type === 'ship') {
+                    if (obj.x < 0 || obj.x > canvas.width || obj.y < 0 || obj.y > canvas.height) {
+                        collFrame = true;
+                    }
                 }
 
                 ctx.save();
@@ -119,11 +182,28 @@
                     w.splice(i, 1);
                     addStar(w, -10);
                 }
+
+
             }
 
-            window.requestAnimationFrame(() => {
-                draw(w);
-            });
+            if (collPlanet || collFrame) {
+                collPlanet = false;
+                collFrame = false;
+                w = init(lvls[currentLvl]);
+            }
+            else if (collWh) {
+                collWh = false;
+                currentLvl += 1;
+                w = init(lvls[currentLvl]);
+            }
+
+            console.log(performance.now() - lastDraw);
+            if (performance.now() - lastDraw > 1) {
+                window.requestAnimationFrame(() => {
+                    lastDraw = performance.now();
+                    draw(w);
+                });
+            }
 
         }
     })();

@@ -19,7 +19,21 @@ end.prototype.draw = function(ctx) {
     ctx.translate(200, 150);
     ctx.font = "20px Arial";
     ctx.fillStyle="white";
-    ctx.fillText("Yeah you are ", 0, 0);
+    ctx.fillText("You haved arrived your home ", 0, 0);
+    ctx.translate(0, 70);
+
+    ctx.font = "50px Arial";
+    ctx.fillStyle="white";
+    ctx.fillText("GAME OVER", 0, 0);
+
+    ctx.translate(0, 50);
+    ctx.font = "20px Arial";
+    ctx.fillStyle="white";
+    ctx.fillText("Asteroid pixel graphics https://opengameart.org/users/funwithpixels", 0, 0);
+    ctx.translate(0, 30);
+    ctx.font = "20px Arial";
+    ctx.fillStyle="white";
+    ctx.fillText("Planet pixel graphics https://opengameart.org/users/master484", 0, 0);
 
 }
 

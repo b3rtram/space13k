@@ -28,13 +28,10 @@ menu.prototype.draw = function(ctx) {
     ctx.fillText("Use key a for rotating counterclockwise, rotating also costs fuel", 0, 0);
     ctx.translate(0, 30);
     ctx.fillText("Use key d for rotating clockwise", 0, 0);
-    ctx.translate(0, 30);
-    ctx.fillText("Use key x for reset level", 0, 0);
     ctx.translate(0, 60);
     ctx.fillText("Good luck getting home", 0, 0);
     ctx.translate(0, 30);
     ctx.fillText("Press esc for starting", 0, 0);
-
 
 }
 

@@ -35,11 +35,12 @@
         let kd_w = false;
         let kd_a = false;
         let kd_d = false;
+        let kd_x = false;
         let s = null;
 
 
         let world = initmenu();
-        //let world = init(lvls[4]);
+        //let world = init(lvls[6]);
         draw(world);
 
         function rand(min, max) {
@@ -108,7 +109,7 @@
                 }
 
                 if (e.key === 'x') {
-                    collFrame = true; //no collision here only for reset
+                    kd_x = true; //no collision here only for reset
                 }
 
                 if (e.key === 'a') {
@@ -164,7 +165,6 @@
             world.push(new star(x, y, z));
         }
 
-
         function draw(w) {
 
             let ctx = canvas.getContext('2d');
@@ -212,8 +212,6 @@
                     w.splice(i, 1);
                     addStar(w, -10);
                 }
-
-
             }
 
             if (collPlanet || collFrame) {

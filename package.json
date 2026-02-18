@@ -13,6 +13,7 @@
   },
   "dependencies": {
     "matter-js": "^0.20.0",
-    "matter-attractors": "^0.1.6"
+    "matter-attractors": "^0.1.6",
+    "serve": "^14.2.0"
   }
 }

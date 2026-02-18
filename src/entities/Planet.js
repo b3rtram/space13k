@@ -23,7 +23,7 @@ export default class Planet {
 
     ctx.save();
     ctx.translate(x, y);
-    const scale = this.radius / 13;
+    const scale = (this.radius * 2) / img.width;
     ctx.scale(scale, scale);
     ctx.drawImage(img, -img.width / 2, -img.height / 2);
     ctx.restore();

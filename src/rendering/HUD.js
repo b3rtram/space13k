@@ -1,4 +1,6 @@
 import { LEVEL_COUNT } from '../levels/levels.js';
+import { CYAN, ORANGE, DIM, bodyFont } from './UITheme.js';
+import { roundedRect } from './UIUtils.js';
 
 export default class HUD {
   constructor() {
@@ -14,89 +16,82 @@ export default class HUD {
   }
 
   draw(ctx, width, height, fuel, levelIndex) {
-    // Fuel bar
     ctx.save();
-    ctx.translate(50, 50);
-    ctx.font = '20px Arial';
-    ctx.fillStyle = 'white';
-    ctx.fillText('Tank', 0, 0);
 
-    const barWidth = fuel * 10;
-    const maxBarWidth = 50; // 5 fuel * 10
+    // --- Fuel bar (top-left) ---
+    const barX = 20;
+    const barY = 20;
+    const barW = 140;
+    const barH = 16;
+    const maxFuel = 5;
+    const fuelFrac = Math.max(0, fuel / maxFuel);
 
-    // Background bar
-    ctx.fillStyle = 'rgba(255, 255, 255, 0.1)';
-    ctx.fillRect(70, -15, maxBarWidth, 20);
+    // Label
+    ctx.font = bodyFont(13);
+    ctx.fillStyle = '#c8d8e8';
+    ctx.textAlign = 'left';
+    ctx.fillText('FUEL', barX, barY - 5);
 
-    // Fuel bar
-    if (fuel < 1) {
-      const flash = Math.sin(this.fuelWarningFlash) > 0;
-      ctx.fillStyle = flash ? '#ff3333' : '#aa0000';
-    } else if (fuel < 2) {
-      ctx.fillStyle = '#ffaa00';
-    } else {
-      ctx.fillStyle = '#3366ff';
-    }
-    ctx.fillRect(70, -15, barWidth, 20);
-    ctx.restore();
+    // Background
+    roundedRect(ctx, barX, barY, barW, barH, 4);
+    ctx.fillStyle = 'rgba(255, 255, 255, 0.08)';
+    ctx.fill();
 
-    // Level progress
-    ctx.save();
-    const progressY = height - 30;
-    for (let i = 0; i < LEVEL_COUNT; i++) {
+    // Gradient fill
+    if (fuelFrac > 0) {
+      const fillW = fuelFrac * barW;
       ctx.save();
-      ctx.translate(50 + 150 * i, progressY);
-      ctx.beginPath();
-      ctx.moveTo(0, 0);
-      ctx.lineTo(100, 0);
-      ctx.strokeStyle = 'rgba(255, 255, 255, 0.4)';
-      ctx.stroke();
-      ctx.restore();
+      roundedRect(ctx, barX, barY, fillW, barH, 4);
+      ctx.clip();
 
-      ctx.save();
-      ctx.translate(50 + 150 * (i + 1), progressY);
-      ctx.beginPath();
-      ctx.arc(-25, 0, 8, 0, Math.PI * 2);
-      if (i > levelIndex) {
-        ctx.strokeStyle = 'rgba(255, 255, 255, 0.4)';
-        ctx.stroke();
-      } else if (i === levelIndex) {
-        ctx.fillStyle = '#ffaa00';
-        ctx.fill();
-      } else {
-        ctx.fillStyle = 'white';
-        ctx.fill();
+      const grad = ctx.createLinearGradient(barX, 0, barX + barW, 0);
+      grad.addColorStop(0, '#ff3333');
+      grad.addColorStop(0.35, '#ffaa00');
+      grad.addColorStop(0.7, '#44cc44');
+      grad.addColorStop(1, '#44cc44');
+
+      if (fuel < 1) {
+        const flash = Math.sin(this.fuelWarningFlash) > 0;
+        ctx.globalAlpha = flash ? 1 : 0.4;
       }
+
+      ctx.fillStyle = grad;
+      ctx.fillRect(barX, barY, fillW, barH);
       ctx.restore();
     }
-    ctx.save();
-    ctx.translate(50 + 150 * LEVEL_COUNT, progressY);
-    ctx.beginPath();
-    ctx.moveTo(0, 0);
-    ctx.lineTo(100, 0);
-    ctx.strokeStyle = 'rgba(255, 255, 255, 0.4)';
-    ctx.stroke();
-    ctx.restore();
-    ctx.restore();
 
-    // Key hints
-    ctx.save();
-    ctx.globalAlpha = 0.5;
-    const kx = width - 100;
-    const ky = height - 100;
-    ctx.font = '25px Arial';
-    ctx.fillStyle = 'white';
-    ctx.fillText('w', kx, ky);
-    ctx.font = '12px Arial';
-    ctx.fillText('Burst', kx - 7, ky + 25);
-    ctx.font = '25px Arial';
-    ctx.fillText('a', kx + 30, ky + 60);
-    ctx.font = '12px Arial';
-    ctx.fillText('Rotate', kx + 23, ky + 85);
-    ctx.font = '25px Arial';
-    ctx.fillText('d', kx - 30, ky + 60);
-    ctx.font = '12px Arial';
-    ctx.fillText('Rotate', kx - 37, ky + 85);
+    // Border
+    roundedRect(ctx, barX, barY, barW, barH, 4);
+    ctx.strokeStyle = 'rgba(200, 216, 232, 0.3)';
+    ctx.lineWidth = 1;
+    ctx.stroke();
+
+    // --- Level progress (top-right) ---
+    const sqSize = 12;
+    const sqGap = 6;
+    const totalW = LEVEL_COUNT * sqSize + (LEVEL_COUNT - 1) * sqGap;
+    const startX = width - 20 - totalW;
+    const sqY = 22;
+
+    ctx.font = bodyFont(13);
+    ctx.fillStyle = '#c8d8e8';
+    ctx.textAlign = 'right';
+    ctx.fillText('LEVEL', startX - 10, sqY + 11);
+
+    for (let i = 0; i < LEVEL_COUNT; i++) {
+      const x = startX + i * (sqSize + sqGap);
+      roundedRect(ctx, x, sqY, sqSize, sqSize, 2);
+
+      if (i < levelIndex) {
+        ctx.fillStyle = CYAN;
+      } else if (i === levelIndex) {
+        ctx.fillStyle = ORANGE;
+      } else {
+        ctx.fillStyle = DIM;
+      }
+      ctx.fill();
+    }
+
     ctx.restore();
   }
 }

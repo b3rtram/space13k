@@ -1,21 +1,26 @@
-import { STAR_COUNT, STAR_MIN_Z, STAR_MAX_Z } from '../config.js';
-import { randFloat, randInt } from '../utils/math.js';
+import { randInt } from '../utils/math.js';
 import Star from '../entities/Star.js';
+import { CYAN, ORANGE, TEXT, DIM, titleFont, bodyFont } from '../rendering/UITheme.js';
+import { drawVignette, drawGlowText } from '../rendering/UIUtils.js';
 
 export default class EndScene {
   constructor() {
     this.stars = [];
+    this.time = 0;
   }
 
   enter(game) {
     const { width, height } = game.renderer;
     this.stars = Star.createField(width, height);
+    this.time = 0;
   }
 
   exit() {}
 
   update(game, dt) {
     const { width, height } = game.renderer;
+    this.time += dt;
+
     for (const s of this.stars) {
       s.update(dt);
       if (s.x > width) {
@@ -28,37 +33,34 @@ export default class EndScene {
   render(game, ctx) {
     const { width, height } = game.renderer;
 
-    // Stars
     for (const s of this.stars) s.draw(ctx);
 
-    // Overlay
-    ctx.fillStyle = 'rgba(50, 50, 50, 0.8)';
-    ctx.fillRect(50, 50, width - 100, height - 100);
+    drawVignette(ctx, width, height);
 
     ctx.save();
-    ctx.font = '32px Arial';
-    ctx.fillStyle = 'white';
     ctx.textAlign = 'center';
-    ctx.fillText('SpaceY', width / 2, 120);
 
-    ctx.font = '20px Arial';
-    ctx.fillText('You have arrived home!', width / 2, 200);
+    // Title with orange glow
+    ctx.font = titleFont(42);
+    const pulseBlur = 14 + 6 * Math.sin(this.time * 2);
+    drawGlowText(ctx, 'MISSION COMPLETE', width / 2, height * 0.3, ORANGE, pulseBlur);
 
-    ctx.font = '50px Arial';
-    ctx.fillText('GAME OVER', width / 2, 280);
+    // Subtitle
+    ctx.font = bodyFont(20);
+    ctx.fillStyle = TEXT;
+    ctx.fillText('You have arrived home!', width / 2, height * 0.42);
 
-    ctx.font = '16px Arial';
-    ctx.fillStyle = '#aaa';
-    ctx.fillText(
-      'Asteroid pixel graphics: opengameart.org/users/funwithpixels',
-      width / 2,
-      360,
-    );
-    ctx.fillText(
-      'Planet pixel graphics: opengameart.org/users/master484',
-      width / 2,
-      390,
-    );
+    // Credits
+    ctx.font = bodyFont(14);
+    ctx.fillStyle = DIM;
+    ctx.fillText('Asteroid graphics: opengameart.org/users/funwithpixels', width / 2, height * 0.58);
+    ctx.fillText('Planet graphics: opengameart.org/users/master484', width / 2, height * 0.63);
+
+    // Hint
+    ctx.font = bodyFont(14);
+    ctx.fillStyle = DIM;
+    ctx.fillText('Press ESC to return', width / 2, height * 0.78);
+
     ctx.restore();
   }
 }

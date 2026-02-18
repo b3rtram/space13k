@@ -227,6 +227,21 @@ export default class GameScene {
       );
     }
 
+    // Nebula background
+    const nebula = game.assets.get('nebula');
+    if (nebula) {
+      ctx.save();
+      ctx.globalAlpha = 0.35;
+      // Tile nebula across canvas with slow parallax scroll
+      const scrollX = (performance.now() * 0.003) % nebula.width;
+      for (let x = -scrollX; x < width; x += nebula.width) {
+        for (let y = 0; y < height; y += nebula.height) {
+          ctx.drawImage(nebula, x, y);
+        }
+      }
+      ctx.restore();
+    }
+
     // Stars (background)
     for (const s of this.stars) s.draw(ctx);
 

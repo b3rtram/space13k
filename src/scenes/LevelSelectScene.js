@@ -1,7 +1,9 @@
-import { KEYS, STAR_COUNT, STAR_MIN_Z, STAR_MAX_Z } from '../config.js';
-import { randFloat, randInt } from '../utils/math.js';
+import { KEYS } from '../config.js';
+import { randInt } from '../utils/math.js';
 import { LEVEL_COUNT } from '../levels/levels.js';
 import Star from '../entities/Star.js';
+import { CYAN, ORANGE, TEXT, DIM, titleFont, bodyFont } from '../rendering/UITheme.js';
+import { drawVignette, drawGlowText, drawPanel, drawStar } from '../rendering/UIUtils.js';
 
 const STORAGE_KEY = 'space13k_progress';
 
@@ -19,7 +21,6 @@ export function saveCompletion(levelIndex, fuel, time) {
     progress.levels.push(null);
   }
 
-  // Star rating: 3 stars = fast + fuel left, 2 = medium, 1 = completed
   let stars = 1;
   if (fuel > 2) stars = 3;
   else if (fuel > 0.5) stars = 2;
@@ -41,6 +42,7 @@ export default class LevelSelectScene {
     this.stars = [];
     this.selected = 0;
     this.progress = null;
+    this.time = 0;
   }
 
   enter(game) {
@@ -48,6 +50,7 @@ export default class LevelSelectScene {
     this.stars = Star.createField(width, height);
     this.progress = loadProgress();
     this.selected = 0;
+    this.time = 0;
   }
 
   exit() {}
@@ -59,6 +62,7 @@ export default class LevelSelectScene {
 
   update(game, dt) {
     const { width, height } = game.renderer;
+    this.time += dt;
 
     for (const s of this.stars) {
       s.update(dt);
@@ -89,70 +93,103 @@ export default class LevelSelectScene {
 
     for (const s of this.stars) s.draw(ctx);
 
-    ctx.fillStyle = 'rgba(50, 50, 50, 0.8)';
-    ctx.fillRect(50, 50, width - 100, height - 100);
+    drawVignette(ctx, width, height);
 
     ctx.save();
-    ctx.font = '32px Arial';
-    ctx.fillStyle = 'white';
     ctx.textAlign = 'center';
-    ctx.fillText('Select Level', width / 2, 120);
+
+    // Title
+    ctx.font = titleFont(32);
+    drawGlowText(ctx, 'SELECT LEVEL', width / 2, height * 0.14, CYAN, 14);
 
     // Level grid
     const cols = 4;
-    const cellW = 120;
-    const cellH = 100;
-    const startX = width / 2 - (cols * cellW) / 2;
-    const startY = 170;
+    const cardW = 130;
+    const cardH = 100;
+    const gap = 16;
+    const gridW = cols * cardW + (cols - 1) * gap;
+    const startX = (width - gridW) / 2;
+    const startY = height * 0.24;
 
     for (let i = 0; i < LEVEL_COUNT; i++) {
       const col = i % cols;
       const row = Math.floor(i / cols);
-      const cx = startX + col * cellW + cellW / 2;
-      const cy = startY + row * cellH + cellH / 2;
+      const x = startX + col * (cardW + gap);
+      const y = startY + row * (cardH + gap);
 
       const unlocked = this._isUnlocked(i);
       const isSelected = i === this.selected;
       const completion = this.progress.levels[i];
 
-      // Cell background
-      ctx.fillStyle = isSelected
-        ? 'rgba(255, 170, 0, 0.3)'
-        : 'rgba(255, 255, 255, 0.05)';
-      ctx.fillRect(cx - 45, cy - 35, 90, 70);
+      // Card panel
+      const borderColor = isSelected ? ORANGE : CYAN;
+      drawPanel(ctx, x, y, cardW, cardH, borderColor);
 
+      // Selected glow
       if (isSelected) {
-        ctx.strokeStyle = '#ffaa00';
+        ctx.save();
+        ctx.shadowColor = ORANGE;
+        ctx.shadowBlur = 14;
+        ctx.strokeStyle = ORANGE;
         ctx.lineWidth = 2;
-        ctx.strokeRect(cx - 45, cy - 35, 90, 70);
+        ctx.strokeRect(x + 2, y + 2, cardW - 4, cardH - 4);
+        ctx.restore();
       }
 
-      // Level number
-      ctx.font = '24px Arial';
-      ctx.fillStyle = unlocked ? 'white' : '#555';
-      ctx.textAlign = 'center';
-      ctx.fillText(`Level ${i + 1}`, cx, cy - 5);
+      const cx = x + cardW / 2;
 
-      // Star rating or lock
       if (!unlocked) {
-        ctx.font = '20px Arial';
-        ctx.fillStyle = '#555';
-        ctx.fillText('Locked', cx, cy + 22);
-      } else if (completion) {
-        let starStr = '';
+        // Padlock icon
+        ctx.save();
+        ctx.strokeStyle = DIM;
+        ctx.lineWidth = 2;
+        ctx.fillStyle = DIM;
+
+        // Lock body
+        const lockW = 18;
+        const lockH = 14;
+        const lockX = cx - lockW / 2;
+        const lockY = y + cardH / 2 - 4;
+        ctx.fillRect(lockX, lockY, lockW, lockH);
+
+        // Lock shackle (arc)
+        ctx.beginPath();
+        ctx.arc(cx, lockY, 8, Math.PI, 0);
+        ctx.stroke();
+
+        ctx.restore();
+      } else {
+        // Level number
+        ctx.font = titleFont(20);
+        ctx.fillStyle = isSelected ? ORANGE : TEXT;
+        ctx.fillText(`Level ${i + 1}`, cx, y + 40);
+
+        // Star rating
+        const starSize = 10;
+        const starGap = 24;
+        const starY = y + 68;
+        const starStartX = cx - starGap;
+
         for (let s = 0; s < 3; s++) {
-          starStr += s < completion.stars ? '\u2605' : '\u2606';
+          const sx = starStartX + s * starGap;
+          const earned = completion && s < completion.stars;
+          drawStar(ctx, sx, starY, starSize);
+          if (earned) {
+            ctx.fillStyle = ORANGE;
+            ctx.fill();
+          } else {
+            ctx.strokeStyle = DIM;
+            ctx.lineWidth = 1;
+            ctx.stroke();
+          }
         }
-        ctx.font = '18px Arial';
-        ctx.fillStyle = '#ffaa00';
-        ctx.fillText(starStr, cx, cy + 22);
       }
     }
 
-    ctx.font = '16px Arial';
-    ctx.fillStyle = '#aaa';
-    ctx.textAlign = 'center';
-    ctx.fillText('A/D to navigate, W or ESC to select', width / 2, height - 80);
+    // Hint
+    ctx.font = bodyFont(14);
+    ctx.fillStyle = DIM;
+    ctx.fillText('A/D to navigate, W or ESC to select', width / 2, height * 0.88);
 
     ctx.restore();
   }

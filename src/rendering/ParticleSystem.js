@@ -1,7 +1,7 @@
 import { randFloat } from '../utils/math.js';
 
 class Particle {
-  constructor(x, y, vx, vy, life, color, size) {
+  constructor(x, y, vx, vy, life, color, size, drag = 0, glow = 0) {
     this.x = x;
     this.y = y;
     this.vx = vx;
@@ -10,11 +10,18 @@ class Particle {
     this.maxLife = life;
     this.color = color;
     this.size = size;
+    this.drag = drag;
+    this.glow = glow;
   }
 
   update(dt) {
     this.x += this.vx * dt;
     this.y += this.vy * dt;
+    if (this.drag > 0) {
+      const f = 1 - this.drag * dt;
+      this.vx *= f;
+      this.vy *= f;
+    }
     this.life -= dt;
   }
 
@@ -51,17 +58,67 @@ export default class ParticleSystem {
   }
 
   emitExplosion(x, y) {
-    for (let i = 0; i < 40; i++) {
+    // Hot white/yellow core — bright, fast fade
+    for (let i = 0; i < 12; i++) {
       const a = randFloat(0, Math.PI * 2);
-      const speed = randFloat(30, 200);
+      const speed = randFloat(10, 60);
       this.particles.push(
         new Particle(
           x, y,
           Math.cos(a) * speed,
           Math.sin(a) * speed,
-          randFloat(0.3, 1.0),
-          `hsl(${randFloat(0, 60)}, 100%, ${randFloat(40, 90)}%)`,
+          randFloat(0.15, 0.35),
+          `hsl(${randFloat(40, 60)}, 100%, ${randFloat(85, 100)}%)`,
+          randFloat(4, 8),
+          2, 20,
+        ),
+      );
+    }
+    // Main fireball — orange/red
+    for (let i = 0; i < 50; i++) {
+      const a = randFloat(0, Math.PI * 2);
+      const speed = randFloat(40, 220);
+      this.particles.push(
+        new Particle(
+          x, y,
+          Math.cos(a) * speed,
+          Math.sin(a) * speed,
+          randFloat(0.4, 1.0),
+          `hsl(${randFloat(0, 45)}, 100%, ${randFloat(45, 85)}%)`,
           randFloat(2, 5),
+          1.5, 8,
+        ),
+      );
+    }
+    // Fast sparks — thin, long range
+    for (let i = 0; i < 25; i++) {
+      const a = randFloat(0, Math.PI * 2);
+      const speed = randFloat(150, 400);
+      this.particles.push(
+        new Particle(
+          x, y,
+          Math.cos(a) * speed,
+          Math.sin(a) * speed,
+          randFloat(0.3, 0.7),
+          `hsl(${randFloat(30, 55)}, 100%, ${randFloat(70, 100)}%)`,
+          randFloat(1, 2),
+          3, 0,
+        ),
+      );
+    }
+    // Slow smoke/embers — dark, lingering
+    for (let i = 0; i < 20; i++) {
+      const a = randFloat(0, Math.PI * 2);
+      const speed = randFloat(10, 50);
+      this.particles.push(
+        new Particle(
+          x, y,
+          Math.cos(a) * speed,
+          Math.sin(a) * speed,
+          randFloat(0.6, 1.2),
+          `hsl(${randFloat(0, 20)}, 80%, ${randFloat(15, 35)}%)`,
+          randFloat(3, 7),
+          2, 0,
         ),
       );
     }
@@ -114,8 +171,12 @@ export default class ParticleSystem {
       ctx.save();
       ctx.globalAlpha = p.alpha;
       ctx.fillStyle = p.color;
+      if (p.glow > 0) {
+        ctx.shadowColor = p.color;
+        ctx.shadowBlur = p.glow * p.alpha;
+      }
       ctx.beginPath();
-      ctx.arc(p.x, p.y, p.size, 0, Math.PI * 2);
+      ctx.arc(p.x, p.y, p.size * (0.5 + 0.5 * p.alpha), 0, Math.PI * 2);
       ctx.fill();
       ctx.restore();
     }

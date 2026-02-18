@@ -28,6 +28,7 @@ export default class GameScene {
     this.fadeAlpha = 1;
     this.wasThrusting = false;
     this.levelTime = 0;
+    this.deathTimer = 0;
   }
 
   enter(game) {
@@ -48,6 +49,7 @@ export default class GameScene {
     this.fadeAlpha = 1;
     this.wasThrusting = false;
     this.levelTime = 0;
+    this.deathTimer = 0;
 
     const { width, height } = game.renderer;
     const data = levels[this.levelIndex];
@@ -81,7 +83,7 @@ export default class GameScene {
           this.collisionResult = 'death';
           const { x, y } = this.ship.body.position;
           this.particles.emitExplosion(x, y);
-          this.screenShake = 0.3;
+          this.screenShake = 0.5;
           game.audio.playCollision();
           game.audio.stopThrust();
         } else if (other === 'wormhole') {
@@ -121,6 +123,17 @@ export default class GameScene {
     // Screen shake decay
     if (this.screenShake > 0) {
       this.screenShake = Math.max(0, this.screenShake - dt);
+    }
+
+    // Death timer — explosion playing, wait before restarting
+    if (this.deathTimer > 0) {
+      this.deathTimer -= dt;
+      this.particles.update(dt);
+      if (this.deathTimer <= 0) {
+        this.deathTimer = 0;
+        this._loadLevel(game);
+      }
+      return;
     }
 
     // Reset level
@@ -195,12 +208,25 @@ export default class GameScene {
     // Boundary collision
     const { x, y } = this.ship.body.position;
     if (x < 0 || x > width || y < 0 || y > height) {
-      this.collisionResult = 'death';
+      if (this.collisionResult !== 'death') {
+        this.collisionResult = 'death';
+        this.particles.emitExplosion(
+          Math.max(0, Math.min(width, x)),
+          Math.max(0, Math.min(height, y)),
+        );
+        this.screenShake = 0.5;
+        game.audio.playCollision();
+        game.audio.stopThrust();
+      }
     }
 
     // Handle collisions
     if (this.collisionResult === 'death') {
-      this._loadLevel(game);
+      if (this.deathTimer === 0) {
+        this.deathTimer = 1.0;
+        this.ship.visible = false;
+      }
+      return; // Skip wormhole check during death
     } else if (this.collisionResult === 'wormhole') {
       saveCompletion(this.levelIndex, this.ship.fuel, this.levelTime);
       this.levelIndex++;
@@ -266,7 +292,7 @@ export default class GameScene {
     this.particles.draw(ctx);
 
     // Ship
-    this.ship.draw(ctx);
+    if (this.ship.visible !== false) this.ship.draw(ctx);
 
     ctx.restore(); // End screen shake
 

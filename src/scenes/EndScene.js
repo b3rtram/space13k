@@ -59,7 +59,7 @@ export default class EndScene {
     // Hint
     ctx.font = bodyFont(14);
     ctx.fillStyle = DIM;
-    ctx.fillText('Press ESC to return', width / 2, height * 0.78);
+    ctx.fillText('Press Enter to return', width / 2, height * 0.78);
 
     ctx.restore();
   }

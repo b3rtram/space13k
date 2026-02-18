@@ -39,7 +39,7 @@ export default class MenuScene {
       this.selectedOption = (this.selectedOption + 1) % 2;
     }
 
-    if (game.input.wasPressed(KEYS.START) || game.input.wasPressed(KEYS.THRUST)) {
+    if (game.input.wasPressed(KEYS.START)) {
       if (this.selectedOption === 0) {
         game.startGame(0);
       } else {
@@ -73,7 +73,7 @@ export default class MenuScene {
     const lines = [
       'Lost in space with little fuel. Use planetary gravity',
       'to slingshot through wormholes and find your way home.',
-      'W: thrust  |  A/D: rotate  |  X: reset level',
+      '\u2191: thrust  |  \u2190/\u2192: rotate  |  X: reset level',
     ];
     let y = height * 0.38;
     for (const line of lines) {
@@ -99,7 +99,7 @@ export default class MenuScene {
     // Hint text
     ctx.font = bodyFont(14);
     ctx.fillStyle = '#556677';
-    ctx.fillText('A/D to navigate, W or ESC to select', width / 2, height * 0.88);
+    ctx.fillText('\u2190/\u2192 to navigate, Enter to select', width / 2, height * 0.88);
 
     ctx.restore();
   }

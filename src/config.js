@@ -25,11 +25,11 @@ export const STAR_MAX_Z = 0.2;
 export const DESIGN_WIDTH = 1024;
 export const DESIGN_HEIGHT = 768;
 
-// Keys
+// Keys (arrays — InputManager accepts single codes or arrays)
 export const KEYS = {
-  THRUST: 'KeyW',
-  ROTATE_LEFT: 'KeyA',
-  ROTATE_RIGHT: 'KeyD',
-  RESET: 'KeyX',
-  START: 'Escape',
+  THRUST: ['KeyW', 'ArrowUp'],
+  ROTATE_LEFT: ['KeyA', 'ArrowLeft'],
+  ROTATE_RIGHT: ['KeyD', 'ArrowRight'],
+  RESET: ['KeyX'],
+  START: ['Enter', 'Escape'],
 };

@@ -5,6 +5,7 @@ export default class InputManager {
     this.justReleased = {};
 
     this._onKeyDown = (e) => {
+      if (e.code.startsWith('Arrow')) e.preventDefault();
       if (!this.keys[e.code]) {
         this.justPressed[e.code] = true;
       }
@@ -21,14 +22,17 @@ export default class InputManager {
   }
 
   isDown(code) {
+    if (Array.isArray(code)) return code.some((c) => this.keys[c]);
     return !!this.keys[code];
   }
 
   wasPressed(code) {
+    if (Array.isArray(code)) return code.some((c) => this.justPressed[c]);
     return !!this.justPressed[code];
   }
 
   wasReleased(code) {
+    if (Array.isArray(code)) return code.some((c) => this.justReleased[c]);
     return !!this.justReleased[code];
   }
 

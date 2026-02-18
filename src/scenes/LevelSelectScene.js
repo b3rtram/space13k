@@ -81,7 +81,7 @@ export default class LevelSelectScene {
     }
 
     // Select level
-    if (game.input.wasPressed(KEYS.START) || game.input.wasPressed(KEYS.THRUST)) {
+    if (game.input.wasPressed(KEYS.START)) {
       if (this._isUnlocked(this.selected)) {
         game.startGame(this.selected);
       }
@@ -189,7 +189,7 @@ export default class LevelSelectScene {
     // Hint
     ctx.font = bodyFont(14);
     ctx.fillStyle = DIM;
-    ctx.fillText('A/D to navigate, W or ESC to select', width / 2, height * 0.88);
+    ctx.fillText('\u2190/\u2192 to navigate, Enter to select', width / 2, height * 0.88);
 
     ctx.restore();
   }

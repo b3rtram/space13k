@@ -10,6 +10,7 @@ export default class Game {
   constructor(canvas) {
     this.renderer = new Renderer(canvas);
     this.input = new InputManager();
+    this.input.bindCanvas(canvas);
     this.scenes = new SceneManager();
     this.assets = new AssetLoader();
     this.audio = new AudioManager();

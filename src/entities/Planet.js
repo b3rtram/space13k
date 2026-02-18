@@ -14,6 +14,25 @@ export default class Planet {
 
     this.radius = radius;
     this.textureKey = textureKey;
+    this.flipped = false;
+    this.originalMass = mass;
+  }
+
+  flipGravity() {
+    this.flipped = true;
+    this.body.plugin.gravityMass = -this.originalMass;
+  }
+
+  unflipGravity() {
+    this.flipped = false;
+    this.body.plugin.gravityMass = this.originalMass;
+  }
+
+  containsPoint(mx, my) {
+    const { x, y } = this.body.position;
+    const dx = mx - x;
+    const dy = my - y;
+    return dx * dx + dy * dy <= (this.radius + 10) * (this.radius + 10);
   }
 
   draw(ctx, assets) {
@@ -26,6 +45,14 @@ export default class Planet {
     const scale = (this.radius * 2) / img.width;
     ctx.scale(scale, scale);
     ctx.drawImage(img, -img.width / 2, -img.height / 2);
+
+    // Red tint overlay for flipped gravity
+    if (this.flipped) {
+      ctx.globalCompositeOperation = 'source-atop';
+      ctx.fillStyle = 'rgba(255, 50, 50, 0.35)';
+      ctx.fillRect(-img.width / 2, -img.height / 2, img.width, img.height);
+    }
+
     ctx.restore();
   }
 }

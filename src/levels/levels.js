@@ -39,6 +39,7 @@ function n(lvl) {
       y: fp.y / H,
       amount: fp.amount,
     })),
+    abilities: lvl.abilities || { gravityFlip: 0 },
   };
 }
 
@@ -83,6 +84,7 @@ const rawLevels = [
       { x: 950, y: 620, r: 0.01, m: 0.01, z: 1.5, sx: 0.01, sy: -0.01 },
       { x: 850, y: 320, r: 0.01, m: 0.01, z: 1.5, sx: 0.01, sy: -0.01 },
     ],
+    abilities: { gravityFlip: 1 },
   },
   {
     s: { x: 60, y: 200, f: 5 },
@@ -100,6 +102,7 @@ const rawLevels = [
       { x: 850, y: 320, r: 0.01, m: 0.01, z: 1.5, sx: 0.01, sy: -0.01 },
     ],
     fp: [{ x: 750, y: 300, amount: 1.5 }],
+    abilities: { gravityFlip: 1 },
   },
   {
     s: { x: 900, y: 700, f: 5 },
@@ -116,6 +119,7 @@ const rawLevels = [
       { x: 850, y: 320, r: 0.01, m: 0.01, z: 1.5, sx: 0.01, sy: -0.01 },
     ],
     fp: [{ x: 450, y: 350, amount: 1.5 }],
+    abilities: { gravityFlip: 2 },
   },
   {
     s: { x: 900, y: 200, f: 5 },
@@ -132,6 +136,7 @@ const rawLevels = [
       { x: 950, y: 620, r: 0.01, m: 0.01, z: 1.5, sx: 0.01, sy: -0.01 },
       { x: 850, y: 320, r: 0.01, m: 0.01, z: 1.5, sx: 0.01, sy: -0.01 },
     ],
+    abilities: { gravityFlip: 2 },
   },
   {
     s: { x: 100, y: 100, f: 5 },
@@ -154,6 +159,7 @@ const rawLevels = [
       { x: 450, y: 500, amount: 1 },
       { x: 700, y: 200, amount: 1 },
     ],
+    abilities: { gravityFlip: 2 },
   },
 ];
 

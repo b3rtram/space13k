@@ -6,6 +6,7 @@ import { randInt } from '../utils/math.js';
 import ParticleSystem from '../rendering/ParticleSystem.js';
 import GravityFieldRenderer from '../rendering/GravityFieldRenderer.js';
 import HUD from '../rendering/HUD.js';
+import PlanningToolbar from '../rendering/PlanningToolbar.js';
 import { saveCompletion } from './LevelSelectScene.js';
 
 export default class GameScene {
@@ -29,6 +30,9 @@ export default class GameScene {
     this.wasThrusting = false;
     this.levelTime = 0;
     this.deathTimer = 0;
+
+    this.phase = 'flying';
+    this.planningToolbar = new PlanningToolbar();
   }
 
   enter(game) {
@@ -70,6 +74,16 @@ export default class GameScene {
     for (const a of this.asteroids) this.physics.addBody(a.body);
     for (const fp of this.fuelPickups) this.physics.addBody(fp.body);
     this.physics.addBody(this.ship.body);
+
+    // Determine phase based on abilities
+    const abilities = data.abilities || { gravityFlip: 0 };
+    const hasAbilities = Object.values(abilities).some((v) => v > 0);
+    if (hasAbilities) {
+      this.phase = 'planning';
+      this.planningToolbar.init(abilities);
+    } else {
+      this.phase = 'flying';
+    }
 
     // Collision detection
     this.physics.onCollisionStart((event) => {
@@ -133,6 +147,12 @@ export default class GameScene {
         this.deathTimer = 0;
         this._loadLevel(game);
       }
+      return;
+    }
+
+    // Planning phase
+    if (this.phase === 'planning') {
+      this._updatePlanning(game, dt);
       return;
     }
 
@@ -240,6 +260,75 @@ export default class GameScene {
     }
   }
 
+  _updatePlanning(game, dt) {
+    const { width, height } = game.renderer;
+
+    // Keep visual systems alive
+    for (const s of this.stars) {
+      s.update(dt);
+      if (s.x > width) {
+        s.x = -2;
+        s.y = randInt(0, height);
+      }
+    }
+    const wh = this.wormhole;
+    this.particles.emitWormholeSwirl(
+      wh.body.position.x,
+      wh.body.position.y,
+      wh.radius,
+      dt,
+    );
+    this.particles.update(dt);
+    this.gravityField.update(dt);
+    this.planningToolbar.update(dt);
+
+    // Enter/Escape starts flying
+    if (game.input.wasPressed(KEYS.START)) {
+      this._startFlying();
+      return;
+    }
+
+    // Handle mouse clicks
+    if (game.input.wasClicked()) {
+      const mx = game.input.mouseX;
+      const my = game.input.mouseY;
+
+      // Check toolbar first
+      const toolbarResult = this.planningToolbar.handleClick(mx, my, width, height);
+      if (toolbarResult) {
+        if (toolbarResult.action === 'start') {
+          this._startFlying();
+          return;
+        }
+        // 'select' is handled inside handleClick
+        return;
+      }
+
+      // Check planet clicks (only when ability is selected)
+      if (this.planningToolbar.selectedAbility === 'gravityFlip') {
+        for (const planet of this.planets) {
+          if (planet.containsPoint(mx, my)) {
+            if (planet.flipped) {
+              // Undo flip
+              planet.unflipGravity();
+              this.planningToolbar.refundCharge('gravityFlip');
+            } else if (this.planningToolbar.hasCharges('gravityFlip')) {
+              // Apply flip
+              planet.flipGravity();
+              this.planningToolbar.useCharge('gravityFlip');
+            }
+            break;
+          }
+        }
+      }
+    }
+  }
+
+  _startFlying() {
+    this.phase = 'flying';
+    this.levelTime = 0;
+  }
+
   render(game, ctx) {
     const { width, height } = game.renderer;
 
@@ -298,6 +387,57 @@ export default class GameScene {
 
     // HUD (not affected by screen shake)
     this.hud.draw(ctx, width, height, this.ship.fuel, this.levelIndex);
+
+    // Planning phase overlay
+    if (this.phase === 'planning') {
+      const selectedAbility = this.planningToolbar.selectedAbility;
+
+      // Highlight rings around planets when ability is selected
+      if (selectedAbility === 'gravityFlip') {
+        for (const planet of this.planets) {
+          const { x, y } = planet.body.position;
+          const r = planet.radius + 15;
+          const pulse = 0.5 + Math.sin(this.planningToolbar.time * 4) * 0.3;
+
+          ctx.save();
+          ctx.beginPath();
+          ctx.arc(x, y, r, 0, Math.PI * 2);
+          ctx.lineWidth = 2;
+          ctx.setLineDash([6, 4]);
+          ctx.lineDashOffset = -this.planningToolbar.time * 30;
+
+          if (planet.flipped) {
+            // Green = already flipped, click to undo
+            ctx.strokeStyle = `rgba(100, 255, 100, ${pulse})`;
+          } else {
+            // Orange = clickable
+            ctx.strokeStyle = `rgba(255, 170, 0, ${pulse})`;
+          }
+          ctx.stroke();
+          ctx.restore();
+        }
+      }
+
+      // Toolbar
+      this.planningToolbar.draw(ctx, width, height);
+
+      // Crosshair cursor at mouse position
+      if (selectedAbility) {
+        const mx = game.input.mouseX;
+        const my = game.input.mouseY;
+        const cSize = 8;
+        ctx.save();
+        ctx.strokeStyle = 'rgba(255, 170, 0, 0.7)';
+        ctx.lineWidth = 1.5;
+        ctx.beginPath();
+        ctx.moveTo(mx - cSize, my);
+        ctx.lineTo(mx + cSize, my);
+        ctx.moveTo(mx, my - cSize);
+        ctx.lineTo(mx, my + cSize);
+        ctx.stroke();
+        ctx.restore();
+      }
+    }
 
     // Fade overlay
     if (this.fadeAlpha > 0) {

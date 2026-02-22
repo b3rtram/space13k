@@ -36,7 +36,6 @@ export default class Game {
       p3: '/assets/planets/p3.png',
       p4: '/assets/planets/p4.png',
       asteroid: '/assets/asteroids/asteroid.png',
-      nebula: '/assets/nebula.png',
     });
 
     this.scenes.push(new MenuScene());

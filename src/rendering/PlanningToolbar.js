@@ -172,6 +172,7 @@ export default class PlanningToolbar {
 
   _abilityLabel(key) {
     if (key === 'gravityFlip') return 'FLIP';
+    if (key === 'gravityWell') return 'WELL';
     return key.toUpperCase();
   }
 }

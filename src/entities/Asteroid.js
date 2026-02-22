@@ -1,5 +1,6 @@
 import Matter from 'matter-js';
 import { gravityAttractor } from '../physics/PhysicsWorld.js';
+import { GRAVITY_CONSTANT } from '../config.js';
 
 export default class Asteroid {
   constructor(x, y, rotationSpeed, mass, scale, speedX, speedY) {
@@ -20,8 +21,22 @@ export default class Asteroid {
     this.rotation = 0;
   }
 
-  update(dt) {
+  update(dt, gravityWells = []) {
     this.rotation += this.rotationSpeed * dt * 60;
+
+    // Apply gravity from player-placed wells
+    for (const well of gravityWells) {
+      const wp = well.body.position;
+      const dx = wp.x - this.body.position.x;
+      const dy = wp.y - this.body.position.y;
+      const distSq = dx * dx + dy * dy;
+      if (distSq < 1) continue;
+      const dist = Math.sqrt(distSq);
+      const force = ((well.body.plugin.gravityMass || 1.5) / distSq) * GRAVITY_CONSTANT;
+      this.speedX += (dx / dist) * force * dt * 60;
+      this.speedY += (dy / dist) * force * dt * 60;
+    }
+
     const x = this.body.position.x + this.speedX * dt * 60;
     const y = this.body.position.y + this.speedY * dt * 60;
     Matter.Body.setPosition(this.body, { x, y });

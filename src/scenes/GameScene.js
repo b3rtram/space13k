@@ -8,6 +8,10 @@ import GravityFieldRenderer from '../rendering/GravityFieldRenderer.js';
 import HUD from '../rendering/HUD.js';
 import PlanningToolbar from '../rendering/PlanningToolbar.js';
 import { saveCompletion } from './LevelSelectScene.js';
+import NebulaBackground from '../rendering/NebulaBackground.js';
+import GravityWell from '../entities/GravityWell.js';
+import { CYAN, ORANGE, titleFont, bodyFont } from '../rendering/UITheme.js';
+import { drawGlowText } from '../rendering/UIUtils.js';
 
 export default class GameScene {
   constructor(levelIndex) {
@@ -16,6 +20,7 @@ export default class GameScene {
     this.ship = null;
     this.planets = [];
     this.asteroids = [];
+    this.aliens = [];
     this.wormhole = null;
     this.fuelPickups = [];
     this.stars = [];
@@ -24,6 +29,7 @@ export default class GameScene {
     this.particles = new ParticleSystem();
     this.gravityField = new GravityFieldRenderer();
     this.hud = new HUD();
+    this.nebula = new NebulaBackground();
 
     this.screenShake = 0;
     this.fadeAlpha = 1;
@@ -33,6 +39,10 @@ export default class GameScene {
 
     this.phase = 'flying';
     this.planningToolbar = new PlanningToolbar();
+    this.gravityWells = [];
+
+    this.levelName = '';
+    this.levelNameTimer = 0;
   }
 
   enter(game) {
@@ -54,15 +64,19 @@ export default class GameScene {
     this.wasThrusting = false;
     this.levelTime = 0;
     this.deathTimer = 0;
+    this.gravityWells = [];
 
     const { width, height } = game.renderer;
     const data = levels[this.levelIndex];
+    this.levelName = data.name || '';
+    this.levelNameTimer = 0;
     const entities = LevelLoader.load(data, width, height);
 
     this.ship = entities.ship;
     this.planets = entities.planets;
     this.wormhole = entities.wormhole;
     this.asteroids = entities.asteroids;
+    this.aliens = entities.aliens;
     this.fuelPickups = entities.fuelPickups;
     this.stars = entities.stars;
 
@@ -72,11 +86,12 @@ export default class GameScene {
     for (const p of this.planets) this.physics.addBody(p.body);
     this.physics.addBody(this.wormhole.body);
     for (const a of this.asteroids) this.physics.addBody(a.body);
+    for (const al of this.aliens) this.physics.addBody(al.body);
     for (const fp of this.fuelPickups) this.physics.addBody(fp.body);
     this.physics.addBody(this.ship.body);
 
     // Determine phase based on abilities
-    const abilities = data.abilities || { gravityFlip: 0 };
+    const abilities = data.abilities || { gravityWell: 0 };
     const hasAbilities = Object.values(abilities).some((v) => v > 0);
     if (hasAbilities) {
       this.phase = 'planning';
@@ -93,7 +108,7 @@ export default class GameScene {
 
         const other = pair.bodyA.label === 'ship' ? pair.bodyB.label : pair.bodyA.label;
 
-        if (other === 'planet' || other === 'asteroid') {
+        if (other === 'planet' || other === 'asteroid' || other === 'alien') {
           this.collisionResult = 'death';
           const { x, y } = this.ship.body.position;
           this.particles.emitExplosion(x, y);
@@ -132,6 +147,11 @@ export default class GameScene {
     // Fade in
     if (this.fadeAlpha > 0) {
       this.fadeAlpha = Math.max(0, this.fadeAlpha - dt * 3);
+    }
+
+    // Level name timer
+    if (this.levelNameTimer < 3) {
+      this.levelNameTimer += dt;
     }
 
     // Screen shake decay
@@ -192,7 +212,9 @@ export default class GameScene {
     }
 
     // Update entities
-    for (const a of this.asteroids) a.update(dt);
+    for (const well of this.gravityWells) well.update(dt);
+    for (const a of this.asteroids) a.update(dt, this.gravityWells);
+    for (const al of this.aliens) al.update(dt, this.ship.body);
     this.wormhole.update(dt);
     for (const fp of this.fuelPickups) fp.update(dt);
 
@@ -304,27 +326,44 @@ export default class GameScene {
         return;
       }
 
-      // Check planet clicks (only when ability is selected)
-      if (this.planningToolbar.selectedAbility === 'gravityFlip') {
-        for (const planet of this.planets) {
-          if (planet.containsPoint(mx, my)) {
-            if (planet.flipped) {
-              // Undo flip
-              planet.unflipGravity();
-              this.planningToolbar.refundCharge('gravityFlip');
-            } else if (this.planningToolbar.hasCharges('gravityFlip')) {
-              // Apply flip
-              planet.flipGravity();
-              this.planningToolbar.useCharge('gravityFlip');
-            }
-            break;
+      // Gravity well placement/removal
+      if (this.planningToolbar.selectedAbility === 'gravityWell') {
+        // Check if clicking an existing well to remove it
+        for (let i = this.gravityWells.length - 1; i >= 0; i--) {
+          if (this.gravityWells[i].containsPoint(mx, my)) {
+            this.gravityWells.splice(i, 1);
+            this.planningToolbar.refundCharge('gravityWell');
+            return;
           }
+        }
+
+        // Ignore clicks on planets or wormhole
+        for (const planet of this.planets) {
+          if (planet.containsPoint(mx, my)) return;
+        }
+        if (this.wormhole) {
+          const whPos = this.wormhole.body.position;
+          const wdx = mx - whPos.x;
+          const wdy = my - whPos.y;
+          if (wdx * wdx + wdy * wdy <= (this.wormhole.radius + 10) * (this.wormhole.radius + 10)) return;
+        }
+
+        // Place new well if charges available
+        if (this.planningToolbar.hasCharges('gravityWell')) {
+          this.gravityWells.push(new GravityWell(mx, my));
+          this.planningToolbar.useCharge('gravityWell');
         }
       }
     }
   }
 
   _startFlying() {
+    // matter-attractors needs attractor bodies BEFORE the ship
+    // Remove ship, add wells, re-add ship
+    this.physics.removeBody(this.ship.body);
+    for (const well of this.gravityWells) this.physics.addBody(well.body);
+    this.physics.addBody(this.ship.body);
+
     this.phase = 'flying';
     this.levelTime = 0;
   }
@@ -343,25 +382,13 @@ export default class GameScene {
     }
 
     // Nebula background
-    const nebula = game.assets.get('nebula');
-    if (nebula) {
-      ctx.save();
-      ctx.globalAlpha = 0.35;
-      // Tile nebula across canvas with slow parallax scroll
-      const scrollX = (performance.now() * 0.003) % nebula.width;
-      for (let x = -scrollX; x < width; x += nebula.width) {
-        for (let y = 0; y < height; y += nebula.height) {
-          ctx.drawImage(nebula, x, y);
-        }
-      }
-      ctx.restore();
-    }
+    this.nebula.draw(ctx, width, height);
 
     // Stars (background)
     for (const s of this.stars) s.draw(ctx);
 
     // Gravity field rings
-    this.gravityField.draw(ctx, this.planets);
+    this.gravityField.draw(ctx, this.planets, this.gravityWells);
 
     // Planets
     for (const p of this.planets) p.draw(ctx, game.assets);
@@ -369,10 +396,16 @@ export default class GameScene {
     // Asteroids
     for (const a of this.asteroids) a.draw(ctx, game.assets);
 
+    // Aliens
+    for (const al of this.aliens) al.draw(ctx);
+
     // Fuel pickups
     for (const fp of this.fuelPickups) {
       if (!fp.collected) fp.draw(ctx);
     }
+
+    // Gravity wells
+    for (const well of this.gravityWells) well.draw(ctx);
 
     // Wormhole
     this.wormhole.draw(ctx);
@@ -388,46 +421,61 @@ export default class GameScene {
     // HUD (not affected by screen shake)
     this.hud.draw(ctx, width, height, this.ship.fuel, this.levelIndex);
 
+    // Level name title card
+    if (this.levelNameTimer < 3 && this.levelName) {
+      // fade in 0-0.4s, hold 0.4-2s, fade out 2-2.8s
+      const t = this.levelNameTimer;
+      let alpha;
+      if (t < 0.4) alpha = t / 0.4;
+      else if (t < 2) alpha = 1;
+      else alpha = 1 - (t - 2) / 0.8;
+      alpha = Math.max(0, Math.min(1, alpha));
+
+      if (alpha > 0) {
+        ctx.save();
+        ctx.globalAlpha = alpha;
+        ctx.textAlign = 'center';
+
+        // "Level X" label
+        ctx.font = bodyFont(16);
+        ctx.fillStyle = CYAN;
+        ctx.fillText(`Level ${this.levelIndex + 1}`, width / 2, height * 0.38);
+
+        // Level name
+        ctx.font = titleFont(30);
+        drawGlowText(ctx, this.levelName, width / 2, height * 0.44, ORANGE, 12);
+
+        ctx.restore();
+      }
+    }
+
     // Planning phase overlay
     if (this.phase === 'planning') {
       const selectedAbility = this.planningToolbar.selectedAbility;
 
-      // Highlight rings around planets when ability is selected
-      if (selectedAbility === 'gravityFlip') {
-        for (const planet of this.planets) {
-          const { x, y } = planet.body.position;
-          const r = planet.radius + 15;
-          const pulse = 0.5 + Math.sin(this.planningToolbar.time * 4) * 0.3;
-
-          ctx.save();
-          ctx.beginPath();
-          ctx.arc(x, y, r, 0, Math.PI * 2);
-          ctx.lineWidth = 2;
-          ctx.setLineDash([6, 4]);
-          ctx.lineDashOffset = -this.planningToolbar.time * 30;
-
-          if (planet.flipped) {
-            // Green = already flipped, click to undo
-            ctx.strokeStyle = `rgba(100, 255, 100, ${pulse})`;
-          } else {
-            // Orange = clickable
-            ctx.strokeStyle = `rgba(255, 170, 0, ${pulse})`;
-          }
-          ctx.stroke();
-          ctx.restore();
-        }
-      }
-
       // Toolbar
       this.planningToolbar.draw(ctx, width, height);
 
-      // Crosshair cursor at mouse position
-      if (selectedAbility) {
+      // Preview circle at mouse position when well ability selected
+      if (selectedAbility === 'gravityWell' && this.planningToolbar.hasCharges('gravityWell')) {
         const mx = game.input.mouseX;
         const my = game.input.mouseY;
-        const cSize = 8;
+        const pulse = 0.3 + Math.sin(this.planningToolbar.time * 4) * 0.15;
+
+        // Preview glow
+        const grad = ctx.createRadialGradient(mx, my, 2, mx, my, 20);
+        grad.addColorStop(0, `rgba(255, 170, 0, ${0.4 * pulse})`);
+        grad.addColorStop(1, 'rgba(255, 170, 0, 0)');
+
         ctx.save();
-        ctx.strokeStyle = 'rgba(255, 170, 0, 0.7)';
+        ctx.fillStyle = grad;
+        ctx.beginPath();
+        ctx.arc(mx, my, 20, 0, Math.PI * 2);
+        ctx.fill();
+
+        // Crosshair
+        const cSize = 8;
+        ctx.strokeStyle = `rgba(255, 170, 0, ${pulse + 0.3})`;
         ctx.lineWidth = 1.5;
         ctx.beginPath();
         ctx.moveTo(mx - cSize, my);

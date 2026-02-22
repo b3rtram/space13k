@@ -66,31 +66,11 @@ export default class HUD {
     ctx.lineWidth = 1;
     ctx.stroke();
 
-    // --- Level progress (top-right) ---
-    const sqSize = 12;
-    const sqGap = 6;
-    const totalW = LEVEL_COUNT * sqSize + (LEVEL_COUNT - 1) * sqGap;
-    const startX = width - 20 - totalW;
-    const sqY = 22;
-
+    // --- Level indicator (top-right) ---
     ctx.font = bodyFont(13);
     ctx.fillStyle = '#c8d8e8';
     ctx.textAlign = 'right';
-    ctx.fillText('LEVEL', startX - 10, sqY + 11);
-
-    for (let i = 0; i < LEVEL_COUNT; i++) {
-      const x = startX + i * (sqSize + sqGap);
-      roundedRect(ctx, x, sqY, sqSize, sqSize, 2);
-
-      if (i < levelIndex) {
-        ctx.fillStyle = CYAN;
-      } else if (i === levelIndex) {
-        ctx.fillStyle = ORANGE;
-      } else {
-        ctx.fillStyle = DIM;
-      }
-      ctx.fill();
-    }
+    ctx.fillText(`LEVEL ${levelIndex + 1} / ${LEVEL_COUNT}`, width - 20, 33);
 
     ctx.restore();
   }

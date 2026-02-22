@@ -1,6 +1,6 @@
 import { KEYS } from '../config.js';
 import { randInt } from '../utils/math.js';
-import { LEVEL_COUNT } from '../levels/levels.js';
+import { levels, LEVEL_COUNT } from '../levels/levels.js';
 import Star from '../entities/Star.js';
 import { CYAN, ORANGE, TEXT, DIM, titleFont, bodyFont } from '../rendering/UITheme.js';
 import { drawVignette, drawGlowText, drawPanel, drawStar } from '../rendering/UIUtils.js';
@@ -37,6 +37,11 @@ export function getProgress() {
   return loadProgress();
 }
 
+const COLS = 7;
+const CARD_W = 105;
+const CARD_H = 68;
+const GAP = 10;
+
 export default class LevelSelectScene {
   constructor() {
     this.stars = [];
@@ -72,12 +77,20 @@ export default class LevelSelectScene {
       }
     }
 
-    // Navigation
+    // Horizontal navigation
     if (game.input.wasPressed(KEYS.ROTATE_RIGHT)) {
       this.selected = Math.min(this.selected + 1, LEVEL_COUNT - 1);
     }
     if (game.input.wasPressed(KEYS.ROTATE_LEFT)) {
       this.selected = Math.max(this.selected - 1, 0);
+    }
+
+    // Vertical navigation (row jump)
+    if (game.input.wasPressed('ArrowDown') || game.input.wasPressed('KeyS')) {
+      this.selected = Math.min(this.selected + COLS, LEVEL_COUNT - 1);
+    }
+    if (game.input.wasPressed('ArrowUp') || game.input.wasPressed('KeyW')) {
+      this.selected = Math.max(this.selected - COLS, 0);
     }
 
     // Select level
@@ -99,23 +112,19 @@ export default class LevelSelectScene {
     ctx.textAlign = 'center';
 
     // Title
-    ctx.font = titleFont(32);
-    drawGlowText(ctx, 'SELECT LEVEL', width / 2, height * 0.14, CYAN, 14);
+    ctx.font = titleFont(28);
+    drawGlowText(ctx, 'SELECT LEVEL', width / 2, height * 0.10, CYAN, 14);
 
     // Level grid
-    const cols = 4;
-    const cardW = 130;
-    const cardH = 100;
-    const gap = 16;
-    const gridW = cols * cardW + (cols - 1) * gap;
+    const gridW = COLS * CARD_W + (COLS - 1) * GAP;
     const startX = (width - gridW) / 2;
-    const startY = height * 0.24;
+    const startY = height * 0.17;
 
     for (let i = 0; i < LEVEL_COUNT; i++) {
-      const col = i % cols;
-      const row = Math.floor(i / cols);
-      const x = startX + col * (cardW + gap);
-      const y = startY + row * (cardH + gap);
+      const col = i % COLS;
+      const row = Math.floor(i / COLS);
+      const x = startX + col * (CARD_W + GAP);
+      const y = startY + row * (CARD_H + GAP);
 
       const unlocked = this._isUnlocked(i);
       const isSelected = i === this.selected;
@@ -123,7 +132,7 @@ export default class LevelSelectScene {
 
       // Card panel
       const borderColor = isSelected ? ORANGE : CYAN;
-      drawPanel(ctx, x, y, cardW, cardH, borderColor);
+      drawPanel(ctx, x, y, CARD_W, CARD_H, borderColor);
 
       // Selected glow
       if (isSelected) {
@@ -132,11 +141,11 @@ export default class LevelSelectScene {
         ctx.shadowBlur = 14;
         ctx.strokeStyle = ORANGE;
         ctx.lineWidth = 2;
-        ctx.strokeRect(x + 2, y + 2, cardW - 4, cardH - 4);
+        ctx.strokeRect(x + 2, y + 2, CARD_W - 4, CARD_H - 4);
         ctx.restore();
       }
 
-      const cx = x + cardW / 2;
+      const cx = x + CARD_W / 2;
 
       if (!unlocked) {
         // Padlock icon
@@ -145,29 +154,32 @@ export default class LevelSelectScene {
         ctx.lineWidth = 2;
         ctx.fillStyle = DIM;
 
-        // Lock body
-        const lockW = 18;
-        const lockH = 14;
+        const lockW = 14;
+        const lockH = 11;
         const lockX = cx - lockW / 2;
-        const lockY = y + cardH / 2 - 4;
+        const lockY = y + CARD_H / 2 - 2;
         ctx.fillRect(lockX, lockY, lockW, lockH);
 
-        // Lock shackle (arc)
         ctx.beginPath();
-        ctx.arc(cx, lockY, 8, Math.PI, 0);
+        ctx.arc(cx, lockY, 6, Math.PI, 0);
         ctx.stroke();
 
         ctx.restore();
       } else {
         // Level number
-        ctx.font = titleFont(20);
+        ctx.font = titleFont(13);
         ctx.fillStyle = isSelected ? ORANGE : TEXT;
-        ctx.fillText(`Level ${i + 1}`, cx, y + 40);
+        ctx.fillText(`${i + 1}`, cx, y + 20);
+
+        // Level name
+        ctx.font = bodyFont(9);
+        ctx.fillStyle = DIM;
+        ctx.fillText(levels[i].name, cx, y + 34);
 
         // Star rating
-        const starSize = 10;
-        const starGap = 24;
-        const starY = y + 68;
+        const starSize = 7;
+        const starGap = 18;
+        const starY = y + 52;
         const starStartX = cx - starGap;
 
         for (let s = 0; s < 3; s++) {
@@ -187,9 +199,9 @@ export default class LevelSelectScene {
     }
 
     // Hint
-    ctx.font = bodyFont(14);
+    ctx.font = bodyFont(13);
     ctx.fillStyle = DIM;
-    ctx.fillText('\u2190/\u2192 to navigate, Enter to select', width / 2, height * 0.88);
+    ctx.fillText('\u2190/\u2192 navigate, \u2191/\u2193 jump row, Enter to select', width / 2, height * 0.94);
 
     ctx.restore();
   }

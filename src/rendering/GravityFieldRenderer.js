@@ -7,7 +7,7 @@ export default class GravityFieldRenderer {
     this.time += dt;
   }
 
-  draw(ctx, planets) {
+  draw(ctx, planets, gravityWells = []) {
     for (const planet of planets) {
       const { x, y } = planet.body.position;
       const r = planet.radius;
@@ -27,6 +27,25 @@ export default class GravityFieldRenderer {
         // Flipped: outward dash animation; Normal: inward
         const direction = flipped ? 1 : -1;
         ctx.lineDashOffset = direction * this.time * 20 * (i % 2 === 0 ? 1 : -1);
+        ctx.beginPath();
+        ctx.arc(x, y, ringRadius, 0, Math.PI * 2);
+        ctx.stroke();
+        ctx.restore();
+      }
+    }
+
+    // Orange rings around gravity wells
+    for (const well of gravityWells) {
+      const { x, y } = well.body.position;
+      for (let i = 1; i <= 2; i++) {
+        const ringRadius = 10 + i * 18;
+        const pulse = 0.2 + Math.sin(this.time * 2 + i * 0.6) * 0.1;
+
+        ctx.save();
+        ctx.strokeStyle = `rgba(255, 170, 0, ${pulse})`;
+        ctx.lineWidth = 1;
+        ctx.setLineDash([3, 6]);
+        ctx.lineDashOffset = -this.time * 25 * (i % 2 === 0 ? 1 : -1);
         ctx.beginPath();
         ctx.arc(x, y, ringRadius, 0, Math.PI * 2);
         ctx.stroke();

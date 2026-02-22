@@ -90,15 +90,10 @@ export default class GameScene {
     for (const fp of this.fuelPickups) this.physics.addBody(fp.body);
     this.physics.addBody(this.ship.body);
 
-    // Determine phase based on abilities
+    // Always start in planning phase for consistent UX
     const abilities = data.abilities || { gravityWell: 0 };
-    const hasAbilities = Object.values(abilities).some((v) => v > 0);
-    if (hasAbilities) {
-      this.phase = 'planning';
-      this.planningToolbar.init(abilities);
-    } else {
-      this.phase = 'flying';
-    }
+    this.phase = 'planning';
+    this.planningToolbar.init(abilities);
 
     // Collision detection
     this.physics.onCollisionStart((event) => {

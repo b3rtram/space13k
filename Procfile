@@ -1,1 +1,1 @@
-web: npx serve dist -l tcp://0.0.0.0:$PORT
+web: node node_modules/serve/build/main.js dist -l tcp://0.0.0.0:$PORT

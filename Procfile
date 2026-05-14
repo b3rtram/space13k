@@ -1,1 +1,0 @@
-web: bash -c 'echo "=== pwd ==="; pwd; echo "=== ls / ==="; ls -la /; echo "=== ls /layers ==="; ls -la /layers 2>&1 || echo NO_LAYERS; echo "=== ls cwd ==="; ls -la; echo "=== which node ==="; which node 2>&1; echo "=== find node ==="; find / -name node -type f 2>/dev/null | head -20; echo "=== env ==="; env | sort; sleep 600'

@@ -12,8 +12,8 @@
     "vite": "^6.0.0"
   },
   "dependencies": {
-    "matter-js": "^0.20.0",
     "matter-attractors": "^0.1.6",
-    "serve": "^14.2.0"
+    "matter-js": "^0.20.0",
+    "serve-handler": "^6.1.7"
   }
 }

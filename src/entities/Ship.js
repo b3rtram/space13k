@@ -68,7 +68,7 @@ export default class Ship {
     ctx.save();
     ctx.translate(x, y);
     ctx.rotate(angle);
-    drawShip(ctx, this.thrusting, this.rotateBurst);
+    drawShip(ctx, angle, this.thrusting, this.rotateBurst);
     ctx.restore();
   }
 }

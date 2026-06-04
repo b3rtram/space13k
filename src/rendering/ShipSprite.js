@@ -1,22 +1,37 @@
-const shipImg = new Image();
-shipImg.src = '/assets/ship.png';
+// Matter.js body.angle 0 = east, +π/2 = south (canvas y is down).
+// Frames are pre-rotated in screen coords, indexed clockwise from east.
+const DIRECTIONS = [
+  'east', 'south-east', 'south', 'south-west',
+  'west', 'north-west', 'north', 'north-east',
+];
 
-// Ship sprite is 48x48, draw centered at origin
+const shipImgs = {};
+for (const dir of DIRECTIONS) {
+  const img = new Image();
+  img.src = `/assets/ship/${dir}.png`;
+  shipImgs[dir] = img;
+}
+
 const SIZE = 48;
 const HALF = SIZE / 2;
+const TWO_PI = Math.PI * 2;
 
-// Sprite points upper-left (~-135°), rotate to face right (0°)
-const SPRITE_ROTATION = Math.PI * 1.25;
+function pickFrame(angle) {
+  let a = angle % TWO_PI;
+  if (a < 0) a += TWO_PI;
+  const idx = Math.round(a / (Math.PI / 4)) % 8;
+  return shipImgs[DIRECTIONS[idx]];
+}
 
-export function drawShip(ctx, thrusting, rotateBurst) {
-  if (shipImg.complete && shipImg.naturalWidth > 0) {
+export function drawShip(ctx, angle, thrusting, rotateBurst) {
+  const frame = pickFrame(angle);
+  if (frame.complete && frame.naturalWidth > 0) {
+    // Undo parent rotation: frames are already pre-rotated in screen coords.
     ctx.save();
-    ctx.scale(1, -1);
-    ctx.rotate(SPRITE_ROTATION);
-    ctx.drawImage(shipImg, -HALF, -HALF, SIZE, SIZE);
+    ctx.rotate(-angle);
+    ctx.drawImage(frame, -HALF, -HALF, SIZE, SIZE);
     ctx.restore();
   } else {
-    // Fallback: simple triangle while image loads
     ctx.beginPath();
     ctx.moveTo(12, 0);
     ctx.lineTo(-8, -7);
@@ -26,7 +41,7 @@ export function drawShip(ctx, thrusting, rotateBurst) {
     ctx.fill();
   }
 
-  // Thrust exhaust glow
+  // Thrust exhaust glow (drawn in parent's rotated frame: ship faces east)
   if (thrusting) {
     ctx.save();
     ctx.shadowColor = '#ff6600';
@@ -48,7 +63,6 @@ export function drawShip(ctx, thrusting, rotateBurst) {
     ctx.restore();
   }
 
-  // Rotation bursts
   if (rotateBurst === 1) {
     ctx.save();
     ctx.shadowColor = '#00aaff';
